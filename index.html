@@ -2,36 +2,55 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Tech Patch - Jogo da Memória</title>
 <style>
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
     body {
         font-family: 'Segoe UI', sans-serif;
         background: radial-gradient(circle at top, #001a33, #000);
         color: #fff;
         text-align: center;
         margin: 0;
-        padding: 0;
+        padding: 10px;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
+    
     h1 {
         color: #00ccff;
         text-shadow: 0 0 10px #00ffff;
-        margin-top: 20px;
+        margin: 15px 0 5px 0;
+        font-size: clamp(24px, 6vw, 36px);
     }
+    
+    p {
+        font-size: clamp(14px, 3vw, 16px);
+        margin: 5px 0 15px 0;
+    }
+    
     #game-board {
         display: grid;
-        grid-template-columns: repeat(4, 120px);
-        gap: 15px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: clamp(8px, 2vw, 15px);
         justify-content: center;
-        margin: 30px auto;
+        margin: 20px auto;
         max-width: 600px;
+        padding: 0 10px;
     }
+    
     .card {
-        width: 120px;
-        height: 120px;
+        width: 100%;
+        aspect-ratio: 1;
         perspective: 1000px;
         cursor: pointer;
+        touch-action: manipulation;
     }
+    
     .card-inner {
         position: relative;
         width: 100%;
@@ -39,72 +58,89 @@
         transition: transform 0.6s;
         transform-style: preserve-3d;
     }
+    
     .flipped .card-inner {
         transform: rotateY(180deg);
     }
+    
     .card-front, .card-back {
         position: absolute;
         width: 100%;
         height: 100%;
         backface-visibility: hidden;
-        border-radius: 12px;
+        border-radius: clamp(8px, 2vw, 12px);
         box-shadow: 0 0 12px #00ccff;
     }
+    
     .card-front {
         background: #003366;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: clamp(20px, 5vw, 28px);
         color: #00ccff;
     }
+    
     .card-back {
         background-color: #fff;
         transform: rotateY(180deg);
+        overflow: hidden;
     }
+    
     .card-back img {
         width: 100%;
         height: 100%;
-        border-radius: 12px;
         object-fit: cover;
+        border-radius: clamp(8px, 2vw, 12px);
     }
+    
     #status {
-        font-size: 20px;
-        margin-top: 15px;
+        font-size: clamp(16px, 3.5vw, 20px);
+        margin: 15px 0;
         color: #00ffcc;
         display: flex;
         justify-content: center;
-        gap: 30px;
+        gap: clamp(15px, 5vw, 30px);
+        flex-wrap: wrap;
     }
+    
     #ranking {
-        margin: 30px auto;
+        margin: 30px auto 20px;
         max-width: 500px;
         background: rgba(0, 51, 102, 0.5);
-        padding: 20px;
+        padding: clamp(15px, 4vw, 20px);
         border-radius: 15px;
         box-shadow: 0 0 15px #00ccff;
     }
+    
     #ranking h2 {
         color: #00ccff;
         margin-top: 0;
+        font-size: clamp(20px, 4vw, 24px);
     }
+    
     #ranking-list {
         list-style: none;
         padding: 0;
         text-align: left;
     }
+    
     #ranking-list li {
-        padding: 10px;
+        padding: clamp(8px, 2vw, 10px);
         margin: 5px 0;
         background: rgba(0, 204, 255, 0.2);
         border-radius: 8px;
         display: flex;
         justify-content: space-between;
+        font-size: clamp(13px, 3vw, 16px);
+        gap: 10px;
     }
+    
     #ranking-list li:first-child {
         background: rgba(255, 215, 0, 0.3);
         font-weight: bold;
     }
+    
     .modal {
         display: none;
         position: fixed;
@@ -112,56 +148,113 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.9);
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        padding: 20px;
     }
+    
     .modal-content {
         background: #003366;
-        padding: 30px;
+        padding: clamp(20px, 5vw, 30px);
         border-radius: 15px;
         text-align: center;
         box-shadow: 0 0 20px #00ccff;
         max-width: 400px;
+        width: 100%;
     }
+    
+    .modal-content h2 {
+        font-size: clamp(22px, 5vw, 28px);
+        margin-top: 0;
+    }
+    
+    .modal-content p {
+        font-size: clamp(14px, 3.5vw, 16px);
+    }
+    
     .modal-content input {
-        width: 80%;
-        padding: 10px;
+        width: 100%;
+        max-width: 300px;
+        padding: 12px;
         margin: 15px 0;
         border: 2px solid #00ccff;
         border-radius: 8px;
-        font-size: 16px;
+        font-size: clamp(14px, 3.5vw, 16px);
         background: #001a33;
         color: #fff;
     }
+    
     .modal-content button {
         margin: 5px;
     }
+    
     button {
-        padding: 10px 25px;
-        font-size: 18px;
+        padding: clamp(8px, 2vw, 10px) clamp(20px, 4vw, 25px);
+        font-size: clamp(16px, 3.5vw, 18px);
         border: none;
         border-radius: 10px;
         background-color: #00ccff;
         color: #000;
         cursor: pointer;
         transition: 0.3s;
+        font-weight: 600;
+        touch-action: manipulation;
     }
+    
     button:hover {
         background-color: #00ffaa;
     }
+    
+    button:active {
+        transform: scale(0.95);
+    }
+    
     .logo-fixed {
         position: fixed;
         bottom: 15px;
         right: 15px;
-        width: 120px;
+        width: clamp(80px, 15vw, 120px);
         opacity: 0.9;
         z-index: 999;
         transition: transform 0.3s;
     }
+    
     .logo-fixed:hover {
         transform: scale(1.05);
+    }
+    
+    /* Ajustes para telas muito pequenas */
+    @media (max-width: 400px) {
+        #game-board {
+            gap: 6px;
+            padding: 0 5px;
+        }
+        
+        .logo-fixed {
+            width: 70px;
+            bottom: 10px;
+            right: 10px;
+        }
+    }
+    
+    /* Ajustes para tablets */
+    @media (min-width: 600px) and (max-width: 1024px) {
+        #game-board {
+            max-width: 550px;
+        }
+    }
+    
+    /* Ajustes para desktop */
+    @media (min-width: 1025px) {
+        body {
+            padding: 20px;
+        }
+        
+        #game-board {
+            grid-template-columns: repeat(4, 120px);
+        }
     }
 </style>
 </head>
@@ -169,7 +262,7 @@
 
 <img src="TechPatch.png" class="logo-fixed" alt="Logo TechPatch">
 
-<h1>🧠 TECH PATCH </h1>
+<h1>🧠 TECH PATCH</h1>
 <p>Encontre os pares de componentes de computador!</p>
 <div id="status">
     <div>Tentativas: <span id="attempts">0</span></div>
@@ -205,7 +298,6 @@ const imagens = [
     {nome: "Fonte", img: "https://images.unsplash.com/photo-1756576170672-1123237f1d77?w=400&h=400&fit=crop"},
     {nome: "PLACAMAE", img: "https://images.unsplash.com/photo-1630163219451-13a7cff121d0?w=400&h=400&fit=crop"},
     {nome: "Cooler", img: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400&h=400&fit=crop"}
-
 ];
 
 let board = [];
@@ -253,7 +345,13 @@ function startGame() {
                 <div class="card-back"><img src="${item.img}" alt="${item.nome}"></div>
             </div>
         `;
-        card.addEventListener("click", () => flipCard(card));
+        
+        // Suporte tanto para mouse quanto para touch
+        card.addEventListener("click", (e) => {
+            e.preventDefault();
+            flipCard(card);
+        });
+        
         boardContainer.appendChild(card);
     });
     
@@ -379,6 +477,11 @@ function loadRanking() {
         rankingList.appendChild(li);
     });
 }
+
+// Prevenir zoom duplo-clique no iOS
+document.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+}, { passive: false });
 
 saveScoreBtn.addEventListener("click", saveScore);
 closeModalBtn.addEventListener("click", () => {
