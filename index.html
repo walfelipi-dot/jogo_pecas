@@ -1,507 +1,2081 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Tech Patch - Jogo da Memória</title>
-<style>
-    * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    body {
-        font-family: 'Segoe UI', sans-serif;
-        background: radial-gradient(circle at top, #001a33, #000);
-        color: #fff;
-        text-align: center;
-        margin: 0;
-        padding: 10px;
-        padding-bottom: 100px;
-        min-height: 100vh;
-        overflow-x: hidden;
-        position: relative;
-    }
-    
-    h1 {
-        color: #00ccff;
-        text-shadow: 0 0 10px #00ffff;
-        margin: 15px 0 5px 0;
-        font-size: clamp(24px, 6vw, 36px);
-    }
-    
-    p {
-        font-size: clamp(14px, 3vw, 16px);
-        margin: 5px 0 15px 0;
-    }
-    
-    #game-board {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: clamp(8px, 2vw, 15px);
-        justify-content: center;
-        margin: 20px auto;
-        max-width: 600px;
-        padding: 0 10px;
-    }
-    
-    .card {
-        width: 100%;
-        aspect-ratio: 1;
-        perspective: 1000px;
-        cursor: pointer;
-        touch-action: manipulation;
-    }
-    
-    .card-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        transition: transform 0.6s;
-        transform-style: preserve-3d;
-    }
-    
-    .flipped .card-inner {
-        transform: rotateY(180deg);
-    }
-    
-    .card-front, .card-back {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        border-radius: clamp(8px, 2vw, 12px);
-        box-shadow: 0 0 12px #00ccff;
-    }
-    
-    .card-front {
-        background: #003366;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: clamp(20px, 5vw, 28px);
-        color: #00ccff;
-    }
-    
-    .card-back {
-        background-color: #fff;
-        transform: rotateY(180deg);
-        overflow: hidden;
-    }
-    
-    .card-back img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: clamp(8px, 2vw, 12px);
-    }
-    
-    #status {
-        font-size: clamp(16px, 3.5vw, 20px);
-        margin: 15px 0;
-        color: #00ffcc;
-        display: flex;
-        justify-content: center;
-        gap: clamp(15px, 5vw, 30px);
-        flex-wrap: wrap;
-    }
-    
-    #ranking {
-        margin: 30px auto 20px;
-        max-width: 500px;
-        background: rgba(0, 51, 102, 0.5);
-        padding: clamp(15px, 4vw, 20px);
-        border-radius: 15px;
-        box-shadow: 0 0 15px #00ccff;
-    }
-    
-    #ranking h2 {
-        color: #00ccff;
-        margin-top: 0;
-        font-size: clamp(20px, 4vw, 24px);
-    }
-    
-    #ranking-list {
-        list-style: none;
-        padding: 0;
-        text-align: left;
-    }
-    
-    #ranking-list li {
-        padding: clamp(8px, 2vw, 10px);
-        margin: 5px 0;
-        background: rgba(0, 204, 255, 0.2);
-        border-radius: 8px;
-        display: flex;
-        justify-content: space-between;
-        font-size: clamp(13px, 3vw, 16px);
-        gap: 10px;
-    }
-    
-    #ranking-list li:first-child {
-        background: rgba(255, 215, 0, 0.3);
-        font-weight: bold;
-    }
-    
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        padding: 20px;
-    }
-    
-    .modal-content {
-        background: #003366;
-        padding: clamp(20px, 5vw, 30px);
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 0 20px #00ccff;
-        max-width: 400px;
-        width: 100%;
-    }
-    
-    .modal-content h2 {
-        font-size: clamp(22px, 5vw, 28px);
-        margin-top: 0;
-    }
-    
-    .modal-content p {
-        font-size: clamp(14px, 3.5vw, 16px);
-    }
-    
-    .modal-content input {
-        width: 100%;
-        max-width: 300px;
-        padding: 12px;
-        margin: 15px 0;
-        border: 2px solid #00ccff;
-        border-radius: 8px;
-        font-size: clamp(14px, 3.5vw, 16px);
-        background: #001a33;
-        color: #fff;
-    }
-    
-    .modal-content button {
-        margin: 5px;
-    }
-    
-    button {
-        padding: clamp(8px, 2vw, 10px) clamp(20px, 4vw, 25px);
-        font-size: clamp(16px, 3.5vw, 18px);
-        border: none;
-        border-radius: 10px;
-        background-color: #00ccff;
-        color: #000;
-        cursor: pointer;
-        transition: 0.3s;
-        font-weight: 600;
-        touch-action: manipulation;
-    }
-    
-    button:hover {
-        background-color: #00ffaa;
-    }
-    
-    button:active {
-        transform: scale(0.95);
-    }
-    
-    .logo-fixed {
-        position: fixed;
-        bottom: 15px;
-        right: 15px;
-        width: clamp(80px, 15vw, 120px);
-        opacity: 0.9;
-        z-index: 999;
-        transition: transform 0.3s;
-        pointer-events: auto;
-        will-change: transform;
-    }
-    
-    .logo-fixed:hover {
-        transform: scale(1.05);
-    }
-    
-    /* Garantir que a logo fique sempre fixa */
-    @supports (position: fixed) {
-        .logo-fixed {
-            position: fixed !important;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Desafio Técnico de Informática</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-    }
-    
-    /* Ajustes para telas muito pequenas */
-    @media (max-width: 400px) {
-        #game-board {
-            gap: 6px;
-            padding: 0 5px;
-        }
-        
-        .logo-fixed {
-            width: 70px;
-            bottom: 10px;
-            right: 10px;
-        }
-    }
-    
-    /* Ajustes para tablets */
-    @media (min-width: 600px) and (max-width: 1024px) {
-        #game-board {
-            max-width: 550px;
-        }
-    }
-    
-    /* Ajustes para desktop */
-    @media (min-width: 1025px) {
+
         body {
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #111827, #1e3a8a, #2563eb);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
-        
-        #game-board {
-            grid-template-columns: repeat(4, 120px);
+
+        .container {
+            width: 100%;
+            max-width: 900px;
         }
-    }
-</style>
+
+        .tela {
+            background: #ffffff;
+            color: #1f2937;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            display: none;
+        }
+
+        .tela.ativa {
+            display: block;
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+        }
+
+        .subtitulo {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .regras {
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .regras li {
+            margin: 10px 0;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 17px;
+            margin: 10px 0 20px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 14px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-principal {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-principal:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .categoria {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .progresso-texto {
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        .barra {
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .barra-progresso {
+            height: 100%;
+            background: #2563eb;
+            width: 0%;
+            transition: 0.3s;
+        }
+
+        .cronometro {
+            background: #111827;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .cronometro.perigo {
+            background: #dc2626;
+        }
+
+        .pergunta {
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin: 20px 0;
+        }
+
+        .alternativas {
+            display: grid;
+            gap: 12px;
+        }
+
+        .alternativa {
+            width: 100%;
+            text-align: left;
+            background: #f9fafb;
+            border: 2px solid #d1d5db;
+            color: #1f2937;
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .alternativa:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .alternativa.selecionada {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+
+        .alternativa.correta {
+            background: #dcfce7;
+            border-color: #16a34a;
+        }
+
+        .alternativa.errada {
+            background: #fee2e2;
+            border-color: #dc2626;
+        }
+
+        .letra {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px;
+            height: 32px;
+            background: #1e3a8a;
+            color: white;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .feedback.certo {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .feedback.errado {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .acao {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-proxima {
+            background: #2563eb;
+            color: white;
+            display: none;
+        }
+
+        .btn-proxima:hover {
+            background: #1d4ed8;
+        }
+
+        .resultado-topo {
+            text-align: center;
+        }
+
+        .trofeu {
+            font-size: 70px;
+        }
+
+        .pontuacao {
+            font-size: 50px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 10px;
+        }
+
+        .resultado-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .resultado-card {
+            background: #f3f4f6;
+            padding: 18px;
+            text-align: center;
+            border-radius: 12px;
+        }
+
+        .resultado-card strong {
+            display: block;
+            font-size: 25px;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+        }
+
+        .desempenho {
+            margin-top: 25px;
+        }
+
+        .linha-desempenho {
+            margin: 15px 0;
+        }
+
+        .linha-desempenho-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .barra-categoria {
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .barra-categoria div {
+            height: 100%;
+            background: #2563eb;
+        }
+
+        .historico {
+            margin-top: 30px;
+        }
+
+        .historico-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .historico-item strong {
+            color: #1e3a8a;
+        }
+
+        .btn-secundario {
+            background: #e5e7eb;
+            color: #1f2937;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-secundario:hover {
+            background: #d1d5db;
+        }
+
+        .aviso {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 700px) {
+
+            .tela {
+                padding: 22px;
+            }
+
+            .resultado-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pergunta {
+                font-size: 19px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<img src="TechPatch.png" class="logo-fixed" alt="Logo TechPatch">
+<div class="container">
 
-<h1>🧠 TECH PATCH</h1>
-<p>Encontre os pares de componentes de computador!</p>
-<div id="status">
-    <div>Tentativas: <span id="attempts">0</span></div>
-    <div>Tempo: <span id="timer">00:00</span></div>
-</div>
-<div id="game-board"></div>
-<button id="restart-btn">🔄 Reiniciar</button>
+    <!-- ============================= -->
+    <!-- TELA INICIAL -->
+    <!-- ============================= -->
 
-<div id="ranking">
-    <h2>🏆 Ranking dos Melhores</h2>
-    <ul id="ranking-list"></ul>
-</div>
+    <section id="telaInicio" class="tela ativa">
 
-<div id="modal" class="modal">
-    <div class="modal-content">
-        <h2>🎉 Parabéns!</h2>
-        <p id="result-text"></p>
-        <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="20">
-        <div>
-            <button id="save-score">Salvar Pontuação</button>
-            <button id="close-modal">Fechar</button>
+        <div class="logo">💻</div>
+
+        <h1>DESAFIO TÉCNICO DE INFORMÁTICA</h1>
+
+        <p class="subtitulo">
+            Montagem e Manutenção • Redes • HTML
+        </p>
+
+        <div class="regras">
+
+            <h2>🎮 Como jogar</h2>
+
+            <ul>
+                <li>Você terá <strong>50 perguntas</strong>.</li>
+                <li>Cada pergunta possui 4 alternativas.</li>
+                <li>Você terá <strong>20 segundos</strong> para responder cada questão.</li>
+                <li>Acertou? Ganha pontos!</li>
+                <li>Errou? A resposta correta será apresentada.</li>
+                <li>Seu progresso é salvo automaticamente no navegador.</li>
+                <li>O histórico fica armazenado por <strong>7 dias</strong>.</li>
+            </ul>
+
         </div>
-    </div>
+
+        <label><strong>Digite seu nome:</strong></label>
+
+        <input
+            type="text"
+            id="nomeJogador"
+            placeholder="Ex.: João da Silva"
+            maxlength="50"
+        >
+
+        <button
+            class="btn-principal"
+            onclick="iniciarJogo()"
+        >
+            🚀 COMEÇAR DESAFIO
+        </button>
+
+        <p class="aviso">
+            Os dados são armazenados localmente neste navegador.
+        </p>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- TELA DO JOGO -->
+    <!-- ============================= -->
+
+    <section id="telaJogo" class="tela">
+
+        <div class="topo">
+
+            <span id="categoria" class="categoria">
+                Categoria
+            </span>
+
+            <span id="progressoTexto" class="progresso-texto">
+                Pergunta 1 de 50
+            </span>
+
+            <span id="cronometro" class="cronometro">
+                ⏱️ 20s
+            </span>
+
+        </div>
+
+        <div class="barra">
+            <div
+                id="barraProgresso"
+                class="barra-progresso">
+            </div>
+        </div>
+
+        <div id="pergunta" class="pergunta">
+            Pergunta aparecerá aqui.
+        </div>
+
+        <div
+            id="alternativas"
+            class="alternativas">
+        </div>
+
+        <div
+            id="feedback"
+            class="feedback">
+        </div>
+
+        <div class="acao">
+
+            <button
+                id="btnProxima"
+                class="btn-proxima"
+                onclick="proximaPergunta()"
+            >
+                Próxima pergunta ➜
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- TELA RESULTADO -->
+    <!-- ============================= -->
+
+    <section id="telaResultado" class="tela">
+
+        <div class="resultado-topo">
+
+            <div class="trofeu">
+                🏆
+            </div>
+
+            <h1>DESAFIO CONCLUÍDO!</h1>
+
+            <p id="mensagemResultado"></p>
+
+            <div
+                id="pontuacaoFinal"
+                class="pontuacao">
+                0 pontos
+            </div>
+
+        </div>
+
+        <div class="resultado-grid">
+
+            <div class="resultado-card">
+                <strong id="totalAcertos">0</strong>
+                Acertos
+            </div>
+
+            <div class="resultado-card">
+                <strong id="totalErros">0</strong>
+                Erros
+            </div>
+
+            <div class="resultado-card">
+                <strong id="percentual">0%</strong>
+                Aproveitamento
+            </div>
+
+            <div class="resultado-card">
+                <strong id="tempoTotal">0s</strong>
+                Tempo
+            </div>
+
+        </div>
+
+
+        <div class="desempenho">
+
+            <h2>📊 Desempenho por categoria</h2>
+
+            <div class="linha-desempenho">
+
+                <div class="linha-desempenho-header">
+                    <span>🖥️ Montagem e Manutenção</span>
+                    <strong id="resultadoManutencao">
+                        0/20
+                    </strong>
+                </div>
+
+                <div class="barra-categoria">
+                    <div
+                        id="barraManutencao"
+                        style="width: 0%">
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="linha-desempenho">
+
+                <div class="linha-desempenho-header">
+                    <span>🌐 Redes</span>
+                    <strong id="resultadoRedes">
+                        0/15
+                    </strong>
+                </div>
+
+                <div class="barra-categoria">
+                    <div
+                        id="barraRedes"
+                        style="width: 0%">
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="linha-desempenho">
+
+                <div class="linha-desempenho-header">
+                    <span>💻 HTML</span>
+                    <strong id="resultadoHTML">
+                        0/15
+                    </strong>
+                </div>
+
+                <div class="barra-categoria">
+                    <div
+                        id="barraHTML"
+                        style="width: 0%">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="historico">
+
+            <h2>📚 Histórico recente</h2>
+
+            <div id="listaHistorico">
+            </div>
+
+        </div>
+
+
+        <button
+            class="btn-principal"
+            onclick="novoJogo()"
+        >
+            🔄 JOGAR NOVAMENTE
+        </button>
+
+        <button
+            class="btn-secundario"
+            onclick="limparHistorico()"
+        >
+            🗑️ Limpar histórico
+        </button>
+
+    </section>
+
 </div>
+
 
 <script>
-const imagens = [
-    {nome: "CPU", img: "https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=400&h=400&fit=crop"},
-    {nome: "SSD", img: "https://images.unsplash.com/photo-1669480380758-4b163a33f6f9?w=400&h=400&fit=crop"},
-    {nome: "RAM", img: "https://images.unsplash.com/photo-1654240253461-3f51c793b366?w=400&h=400&fit=crop"},
-    {nome: "UNIDADEDECDEDVD", img: "https://images.unsplash.com/photo-1626585974582-05b8c6560e90?w=400&h=400&fit=crop"},
-    {nome: "HD", img: "https://images.unsplash.com/photo-1674303377230-204108fa43c6?w=400&h=400&fit=crop"},
-    {nome: "Fonte", img: "https://images.unsplash.com/photo-1756576170672-1123237f1d77?w=400&h=400&fit=crop"},
-    {nome: "PLACAMAE", img: "https://images.unsplash.com/photo-1630163219451-13a7cff121d0?w=400&h=400&fit=crop"},
-    {nome: "Cooler", img: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400&h=400&fit=crop"}
-];
 
-let board = [];
-let firstCard = null;
-let secondCard = null;
-let lockBoard = false;
-let attempts = 0;
-let startTime = null;
-let timerInterval = null;
-let gameFinished = false;
+    /*
+    ==========================================================
+    BANCO DE PERGUNTAS
+    ==========================================================
+    */
 
-const boardContainer = document.getElementById("game-board");
-const attemptsText = document.getElementById("attempts");
-const timerText = document.getElementById("timer");
-const restartBtn = document.getElementById("restart-btn");
-const modal = document.getElementById("modal");
-const playerNameInput = document.getElementById("player-name");
-const saveScoreBtn = document.getElementById("save-score");
-const closeModalBtn = document.getElementById("close-modal");
-const resultText = document.getElementById("result-text");
-const rankingList = document.getElementById("ranking-list");
+    const perguntas = [
 
-function startGame() {
-    board = [...imagens, ...imagens].sort(() => 0.5 - Math.random());
-    boardContainer.innerHTML = "";
-    attempts = 0;
-    gameFinished = false;
-    attemptsText.textContent = "0";
-    timerText.textContent = "00:00";
-    startTime = null;
-    
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
+        // =========================================
+        // MONTAGEM E MANUTENÇÃO
+        // =========================================
 
-    board.forEach((item) => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-        card.dataset.name = item.nome;
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Um computador liga, mas não apresenta imagem no monitor. O monitor funciona normalmente. Qual componente deve ser verificado inicialmente?",
+            alternativas: [
+                "Teclado",
+                "Cabo de rede",
+                "Memória RAM",
+                "Caixa de som"
+            ],
+            correta: 2
+        },
 
-        card.innerHTML = `
-            <div class="card-inner">
-                <div class="card-front">🖥️</div>
-                <div class="card-back"><img src="${item.img}" alt="${item.nome}"></div>
-            </div>
-        `;
-        
-        // Suporte tanto para mouse quanto para touch
-        card.addEventListener("click", (e) => {
-            e.preventDefault();
-            flipCard(card);
-        });
-        
-        boardContainer.appendChild(card);
-    });
-    
-    loadRanking();
-}
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual componente estabelece a conexão física entre o processador e a placa-mãe?",
+            alternativas: [
+                "Soquete",
+                "HD",
+                "Fonte",
+                "Cooler"
+            ],
+            correta: 0
+        },
 
-function startTimer() {
-    if (!startTime) {
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
-            timerText.textContent = `${minutes}:${seconds}`;
-        }, 1000);
-    }
-}
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Um computador fica muito lento ao executar vários programas simultaneamente. Qual componente pode estar relacionado diretamente a esse problema?",
+            alternativas: [
+                "Gabinete",
+                "Memória RAM",
+                "Mouse",
+                "Monitor"
+            ],
+            correta: 1
+        },
 
-function flipCard(card) {
-    if (lockBoard || card === firstCard || card.classList.contains("matched") || gameFinished) return;
-    
-    startTimer();
-    card.classList.add("flipped");
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Um computador utiliza um HD tradicional e o usuário deseja melhorar significativamente o tempo de inicialização. Qual upgrade é mais indicado?",
+            alternativas: [
+                "Trocar o teclado",
+                "Instalar um SSD",
+                "Trocar o gabinete",
+                "Instalar uma caixa de som"
+            ],
+            correta: 1
+        },
 
-    if (!firstCard) {
-        firstCard = card;
-        return;
-    }
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual é a principal função da fonte de alimentação?",
+            alternativas: [
+                "Armazenar arquivos",
+                "Processar dados",
+                "Fornecer energia elétrica aos componentes",
+                "Controlar a velocidade da Internet"
+            ],
+            correta: 2
+        },
 
-    secondCard = card;
-    checkMatch();
-}
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Um cooler está completamente obstruído por poeira. Qual problema pode ocorrer?",
+            alternativas: [
+                "Aumento da temperatura",
+                "Aumento da velocidade da Internet",
+                "Aumento da capacidade do HD",
+                "Melhoria do desempenho"
+            ],
+            correta: 0
+        },
 
-function checkMatch() {
-    lockBoard = true;
-    attempts++;
-    attemptsText.textContent = attempts;
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Um computador desliga sozinho durante jogos e programas pesados. Qual possibilidade deve ser investigada?",
+            alternativas: [
+                "Superaquecimento",
+                "Papel de parede",
+                "Teclado",
+                "Mouse"
+            ],
+            correta: 0
+        },
 
-    const match = firstCard.dataset.name === secondCard.dataset.name;
-    if (match) {
-        firstCard.classList.add("matched");
-        secondCard.classList.add("matched");
-        resetTurn();
-        checkWin();
-    } else {
-        setTimeout(() => {
-            firstCard.classList.remove("flipped");
-            secondCard.classList.remove("flipped");
-            resetTurn();
-        }, 1000);
-    }
-}
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual componente é especializado no processamento gráfico?",
+            alternativas: [
+                "GPU",
+                "RAM",
+                "Fonte",
+                "SSD"
+            ],
+            correta: 0
+        },
 
-function resetTurn() {
-    [firstCard, secondCard, lockBoard] = [null, null, false];
-}
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Antes de instalar uma memória RAM, o técnico deve verificar principalmente:",
+            alternativas: [
+                "Tamanho do monitor",
+                "Compatibilidade com a placa-mãe",
+                "Marca do mouse",
+                "Modelo do teclado"
+            ],
+            correta: 1
+        },
 
-function checkWin() {
-    const matched = document.querySelectorAll(".matched").length;
-    if (matched === board.length) {
-        gameFinished = true;
-        clearInterval(timerInterval);
-        
-        const totalTime = Math.floor((Date.now() - startTime) / 1000);
-        const minutes = Math.floor(totalTime / 60);
-        const seconds = totalTime % 60;
-        
-        setTimeout(() => {
-            resultText.textContent = `Você completou em ${attempts} tentativas e ${minutes}min ${seconds}s!`;
-            modal.style.display = "flex";
-        }, 300);
-    }
-}
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Uma placa de vídeo dedicada normalmente é instalada em qual tipo de slot?",
+            alternativas: [
+                "PCI Express",
+                "SATA",
+                "USB",
+                "DIMM"
+            ],
+            correta: 0
+        },
 
-function saveScore() {
-    const playerName = playerNameInput.value.trim();
-    if (!playerName) {
-        alert("Por favor, digite seu nome!");
-        return;
-    }
-    
-    const totalTime = Math.floor((Date.now() - startTime) / 1000);
-    const ranking = JSON.parse(localStorage.getItem("techMemoryRanking") || "[]");
-    
-    ranking.push({
-        name: playerName,
-        attempts: attempts,
-        time: totalTime,
-        date: new Date().toLocaleDateString()
-    });
-    
-    ranking.sort((a, b) => {
-        if (a.attempts === b.attempts) {
-            return a.time - b.time;
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "O computador começou a apresentar problemas após a instalação de um novo componente. Qual procedimento deve ser realizado?",
+            alternativas: [
+                "Jogar o componente fora",
+                "Verificar compatibilidade, instalação e drivers",
+                "Trocar o monitor",
+                "Formatar todos os computadores"
+            ],
+            correta: 1
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual ferramenta pode ser utilizada para realizar medições elétricas em componentes e circuitos?",
+            alternativas: [
+                "Multímetro",
+                "Pendrive",
+                "Scanner",
+                "Roteador"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Um HD apresenta ruídos incomuns e arquivos começam a ser corrompidos. Qual atitude é mais adequada?",
+            alternativas: [
+                "Ignorar o problema",
+                "Fazer backup e verificar a saúde do armazenamento",
+                "Aumentar o brilho do monitor",
+                "Trocar o mouse"
+            ],
+            correta: 1
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual é a função da pasta térmica entre o processador e o dissipador?",
+            alternativas: [
+                "Melhorar a transferência de calor",
+                "Aumentar a capacidade do SSD",
+                "Fornecer energia ao processador",
+                "Armazenar arquivos"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Um computador possui pouca memória RAM e trava ao abrir vários programas. O que pode ser feito?",
+            alternativas: [
+                "Adicionar RAM compatível",
+                "Trocar o mouse",
+                "Trocar o cabo HDMI",
+                "Trocar somente o gabinete"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual componente ajuda a manter algumas configurações do firmware e o relógio do computador?",
+            alternativas: [
+                "Bateria CMOS",
+                "SSD",
+                "GPU",
+                "Cooler"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual prática faz parte de uma boa manutenção preventiva?",
+            alternativas: [
+                "Aplicar líquido diretamente nas placas",
+                "Remover poeira e verificar conexões",
+                "Desmontar tudo sem necessidade",
+                "Desconectar cabos aleatoriamente"
+            ],
+            correta: 1
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual cuidado ajuda a evitar danos provocados por eletricidade estática?",
+            alternativas: [
+                "Utilizar procedimentos de proteção contra ESD",
+                "Trabalhar sobre uma superfície molhada",
+                "Tocar constantemente nos contatos",
+                "Limpar placas com água"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Qual componente é utilizado principalmente para armazenamento permanente de dados?",
+            alternativas: [
+                "RAM",
+                "CPU",
+                "SSD",
+                "Cooler"
+            ],
+            correta: 2
+        },
+
+        {
+            categoria: "🖥️ Montagem e Manutenção",
+            pergunta: "Para um computador destinado a jogos, quais componentes merecem atenção especial?",
+            alternativas: [
+                "GPU, CPU, RAM e armazenamento",
+                "Somente teclado",
+                "Somente gabinete",
+                "Somente mouse"
+            ],
+            correta: 0
+        },
+
+
+        // =========================================
+        // REDES
+        // =========================================
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "O que é uma rede de computadores?",
+            alternativas: [
+                "Um conjunto de computadores conectados para compartilhar recursos e informações",
+                "Um programa de edição",
+                "Um tipo de memória",
+                "Um sistema de refrigeração"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual equipamento normalmente conecta vários dispositivos em uma rede local?",
+            alternativas: [
+                "Switch",
+                "Monitor",
+                "Scanner",
+                "Estabilizador"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual equipamento normalmente conecta uma rede local a outras redes?",
+            alternativas: [
+                "Roteador",
+                "Teclado",
+                "Monitor",
+                "Impressora"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "O endereço 192.168.1.10 pertence a uma faixa normalmente utilizada para redes privadas?",
+            alternativas: [
+                "Sim",
+                "Não",
+                "Somente em IPv6",
+                "Somente em redes públicas"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual comando pode verificar se existe conectividade IP entre dois dispositivos?",
+            alternativas: [
+                "ping",
+                "format",
+                "mkdir",
+                "shutdown"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Um computador executou ping contra outro dispositivo e recebeu respostas. O que isso indica?",
+            alternativas: [
+                "Existe conectividade IP naquele momento",
+                "O computador está sem rede",
+                "O HD foi formatado",
+                "O computador está infectado"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual protocolo pode fornecer automaticamente endereço IP, máscara e gateway aos dispositivos?",
+            alternativas: [
+                "DHCP",
+                "HTML",
+                "HDMI",
+                "CSS"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual é uma das principais funções do DNS?",
+            alternativas: [
+                "Resolver nomes de domínio para endereços IP",
+                "Fornecer energia",
+                "Aumentar a memória",
+                "Resfriar o computador"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual cabo é amplamente utilizado em redes Ethernet cabeadas?",
+            alternativas: [
+                "Par trançado",
+                "Cabo SATA",
+                "Cabo HDMI",
+                "Cabo P2"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual conector é normalmente encontrado em cabos Ethernet de par trançado?",
+            alternativas: [
+                "RJ-45",
+                "HDMI",
+                "VGA",
+                "P2"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual tecnologia permite conectar dispositivos a uma rede sem utilizar cabo de rede?",
+            alternativas: [
+                "Wi-Fi",
+                "SATA",
+                "HDMI",
+                "DDR"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Um computador acessa outros dispositivos da rede local, mas não acessa a Internet. O que deve ser investigado?",
+            alternativas: [
+                "Gateway e DNS",
+                "Papel de parede",
+                "Monitor",
+                "Teclado"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "O que representa o gateway padrão?",
+            alternativas: [
+                "O dispositivo utilizado para encaminhar tráfego para outras redes",
+                "O endereço do monitor",
+                "O nome do usuário",
+                "O número do gabinete"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual comando do Windows permite consultar configurações de rede?",
+            alternativas: [
+                "ipconfig",
+                "notepad",
+                "paint",
+                "calculator"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "🌐 Redes",
+            pergunta: "Qual dos endereços abaixo é um endereço IPv4 válido?",
+            alternativas: [
+                "192.168.1.50",
+                "999.999.999.999",
+                "300.10.1.1",
+                "192.168.1.500"
+            ],
+            correta: 0
+        },
+
+
+        // =========================================
+        // HTML
+        // =========================================
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual é a principal função do HTML?",
+            alternativas: [
+                "Estruturar o conteúdo de páginas Web",
+                "Criar bancos de dados",
+                "Configurar roteadores",
+                "Controlar a fonte de energia"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual declaração indica que um documento utiliza HTML5?",
+            alternativas: [
+                "<!DOCTYPE html>",
+                "<html5>",
+                "<start html>",
+                "<begin>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag representa normalmente o título principal de uma página?",
+            alternativas: [
+                "<h1>",
+                "<title2>",
+                "<header1>",
+                "<main-title>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag é utilizada para criar um parágrafo?",
+            alternativas: [
+                "<p>",
+                "<paragraph>",
+                "<text>",
+                "<par>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual estrutura cria corretamente um link para outra página?",
+            alternativas: [
+                '<a href="pagina.html">Clique aqui</a>',
+                '<link="pagina.html">Clique</link>',
+                "<url>pagina.html</url>",
+                "<href>pagina.html</href>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag é utilizada para inserir uma imagem?",
+            alternativas: [
+                "<img>",
+                "<image>",
+                "<picture-img>",
+                "<src>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag representa o conteúdo principal e visível da página?",
+            alternativas: [
+                "<body>",
+                "<head>",
+                "<title>",
+                "<meta>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual elemento HTML é utilizado para criar um botão?",
+            alternativas: [
+                "<button>",
+                "<btn>",
+                "<click>",
+                "<button-text>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag cria uma lista não ordenada?",
+            alternativas: [
+                "<ul>",
+                "<ol>",
+                "<list>",
+                "<li-list>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag representa um item dentro de uma lista?",
+            alternativas: [
+                "<li>",
+                "<item>",
+                "<list-item>",
+                "<element>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag é utilizada para criar uma tabela?",
+            alternativas: [
+                "<table>",
+                "<tab>",
+                "<grid>",
+                "<tabela>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag representa uma linha de uma tabela?",
+            alternativas: [
+                "<tr>",
+                "<td>",
+                "<th>",
+                "<line>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual tag representa uma célula comum de uma tabela?",
+            alternativas: [
+                "<td>",
+                "<tr>",
+                "<cell>",
+                "<table-data>"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual atributo é utilizado para definir o endereço de uma imagem na tag img?",
+            alternativas: [
+                "src",
+                "href",
+                "link",
+                "url"
+            ],
+            correta: 0
+        },
+
+        {
+            categoria: "💻 HTML",
+            pergunta: "Qual atributo é utilizado para fornecer um texto alternativo para uma imagem?",
+            alternativas: [
+                "alt",
+                "text",
+                "description",
+                "title-img"
+            ],
+            correta: 0
         }
-        return a.attempts - b.attempts;
-    });
-    
-    localStorage.setItem("techMemoryRanking", JSON.stringify(ranking.slice(0, 10)));
-    
-    modal.style.display = "none";
-    playerNameInput.value = "";
-    loadRanking();
-}
 
-function loadRanking() {
-    const ranking = JSON.parse(localStorage.getItem("techMemoryRanking") || "[]");
-    rankingList.innerHTML = "";
-    
-    if (ranking.length === 0) {
-        rankingList.innerHTML = "<li>Nenhum registro ainda. Seja o primeiro!</li>";
-        return;
+    ];
+
+
+    /*
+    ==========================================================
+    VARIÁVEIS DO JOGO
+    ==========================================================
+    */
+
+    let perguntaAtual = 0;
+
+    let pontos = 0;
+
+    let acertos = 0;
+
+    let erros = 0;
+
+    let tempoRestante = 20;
+
+    let intervalo;
+
+    let tempoInicio;
+
+    let respostasCategoria = {
+
+        "🖥️ Montagem e Manutenção": {
+            acertos: 0,
+            total: 20
+        },
+
+        "🌐 Redes": {
+            acertos: 0,
+            total: 15
+        },
+
+        "💻 HTML": {
+            acertos: 0,
+            total: 15
+        }
+
+    };
+
+    let respostaSelecionada = false;
+
+
+    /*
+    ==========================================================
+    INICIAR JOGO
+    ==========================================================
+    */
+
+    function iniciarJogo() {
+
+        const nome = document
+            .getElementById("nomeJogador")
+            .value
+            .trim();
+
+        if (nome === "") {
+
+            alert("Digite seu nome para começar!");
+
+            return;
+
+        }
+
+        localStorage.setItem(
+            "jogadorAtual",
+            nome
+        );
+
+        perguntaAtual = 0;
+
+        pontos = 0;
+
+        acertos = 0;
+
+        erros = 0;
+
+        tempoInicio = Date.now();
+
+        respostasCategoria = {
+
+            "🖥️ Montagem e Manutenção": {
+                acertos: 0,
+                total: 20
+            },
+
+            "🌐 Redes": {
+                acertos: 0,
+                total: 15
+            },
+
+            "💻 HTML": {
+                acertos: 0,
+                total: 15
+            }
+
+        };
+
+        mostrarTela("telaJogo");
+
+        carregarPergunta();
+
     }
-    
-    ranking.forEach((record, index) => {
-        const minutes = Math.floor(record.time / 60);
-        const seconds = record.time % 60;
-        const li = document.createElement("li");
-        li.innerHTML = `
-            <span>${index + 1}º - ${record.name}</span>
-            <span>${record.attempts} tent. | ${minutes}:${seconds.toString().padStart(2, '0')}</span>
-        `;
-        rankingList.appendChild(li);
-    });
-}
 
-// Prevenir zoom duplo-clique no iOS
-document.addEventListener('dblclick', (e) => {
-    e.preventDefault();
-}, { passive: false });
 
-saveScoreBtn.addEventListener("click", saveScore);
-closeModalBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-    playerNameInput.value = "";
-});
+    /*
+    ==========================================================
+    MOSTRAR TELA
+    ==========================================================
+    */
 
-restartBtn.addEventListener("click", startGame);
-startGame();
+    function mostrarTela(id) {
+
+        document
+            .querySelectorAll(".tela")
+            .forEach(tela => {
+
+                tela.classList.remove("ativa");
+
+            });
+
+        document
+            .getElementById(id)
+            .classList.add("ativa");
+
+    }
+
+
+    /*
+    ==========================================================
+    CARREGAR PERGUNTA
+    ==========================================================
+    */
+
+    function carregarPergunta() {
+
+        respostaSelecionada = false;
+
+        clearInterval(intervalo);
+
+        const pergunta = perguntas[perguntaAtual];
+
+        document
+            .getElementById("categoria")
+            .textContent = pergunta.categoria;
+
+        document
+            .getElementById("progressoTexto")
+            .textContent =
+                `Pergunta ${perguntaAtual + 1} de ${perguntas.length}`;
+
+        document
+            .getElementById("barraProgresso")
+            .style.width =
+                `${((perguntaAtual + 1) / perguntas.length) * 100}%`;
+
+        document
+            .getElementById("pergunta")
+            .textContent =
+                pergunta.pergunta;
+
+        const alternativas =
+            document.getElementById("alternativas");
+
+        alternativas.innerHTML = "";
+
+        const letras = ["A", "B", "C", "D"];
+
+        pergunta.alternativas.forEach(
+            (alternativa, indice) => {
+
+                const botao =
+                    document.createElement("button");
+
+                botao.className = "alternativa";
+
+                botao.innerHTML = `
+                    <span class="letra">
+                        ${letras[indice]}
+                    </span>
+                    ${alternativa}
+                `;
+
+                botao.onclick = () =>
+                    responder(indice);
+
+                alternativas.appendChild(botao);
+
+            }
+        );
+
+        document
+            .getElementById("feedback")
+            .className = "feedback";
+
+        document
+            .getElementById("feedback")
+            .textContent = "";
+
+        document
+            .getElementById("btnProxima")
+            .style.display = "none";
+
+        iniciarCronometro();
+
+    }
+
+
+    /*
+    ==========================================================
+    CRONÔMETRO
+    ==========================================================
+    */
+
+    function iniciarCronometro() {
+
+        tempoRestante = 20;
+
+        atualizarCronometro();
+
+        intervalo = setInterval(() => {
+
+            tempoRestante--;
+
+            atualizarCronometro();
+
+            if (tempoRestante <= 0) {
+
+                clearInterval(intervalo);
+
+                responder(-1);
+
+            }
+
+        }, 1000);
+
+    }
+
+
+    function atualizarCronometro() {
+
+        const elemento =
+            document.getElementById("cronometro");
+
+        elemento.textContent =
+            `⏱️ ${tempoRestante}s`;
+
+        if (tempoRestante <= 5) {
+
+            elemento.classList.add("perigo");
+
+        } else {
+
+            elemento.classList.remove("perigo");
+
+        }
+
+    }
+
+
+    /*
+    ==========================================================
+    RESPONDER
+    ==========================================================
+    */
+
+    function responder(indice) {
+
+        if (respostaSelecionada) {
+
+            return;
+
+        }
+
+        respostaSelecionada = true;
+
+        clearInterval(intervalo);
+
+        const pergunta =
+            perguntas[perguntaAtual];
+
+        const botoes =
+            document.querySelectorAll(".alternativa");
+
+        botoes.forEach(botao => {
+
+            botao.disabled = true;
+
+        });
+
+        const feedback =
+            document.getElementById("feedback");
+
+
+        // RESPOSTA CORRETA
+
+        if (indice === pergunta.correta) {
+
+            acertos++;
+
+            const bonusTempo =
+                tempoRestante * 5;
+
+            const pontosPergunta =
+                100 + bonusTempo;
+
+            pontos += pontosPergunta;
+
+            respostasCategoria[
+                pergunta.categoria
+            ].acertos++;
+
+            botoes[indice]
+                .classList.add("correta");
+
+            feedback.className =
+                "feedback certo";
+
+            feedback.innerHTML =
+                `✅ CORRETO! +${pontosPergunta} pontos`;
+
+        }
+
+        // RESPOSTA ERRADA
+
+        else {
+
+            erros++;
+
+            if (indice >= 0) {
+
+                botoes[indice]
+                    .classList.add("errada");
+
+            }
+
+            botoes[pergunta.correta]
+                .classList.add("correta");
+
+            feedback.className =
+                "feedback errado";
+
+            if (indice === -1) {
+
+                feedback.innerHTML =
+                    `⏰ TEMPO ESGOTADO!<br>
+                    Resposta correta:
+                    <strong>
+                    ${pergunta.alternativas[pergunta.correta]}
+                    </strong>`;
+
+            } else {
+
+                feedback.innerHTML =
+                    `❌ Resposta incorreta!<br>
+                    Resposta correta:
+                    <strong>
+                    ${pergunta.alternativas[pergunta.correta]}
+                    </strong>`;
+
+            }
+
+        }
+
+
+        document
+            .getElementById("btnProxima")
+            .style.display = "block";
+
+
+        salvarProgresso();
+
+    }
+
+
+    /*
+    ==========================================================
+    PRÓXIMA PERGUNTA
+    ==========================================================
+    */
+
+    function proximaPergunta() {
+
+        perguntaAtual++;
+
+        if (perguntaAtual >= perguntas.length) {
+
+            finalizarJogo();
+
+            return;
+
+        }
+
+        carregarPergunta();
+
+    }
+
+
+    /*
+    ==========================================================
+    FINALIZAR JOGO
+    ==========================================================
+    */
+
+    function finalizarJogo() {
+
+        clearInterval(intervalo);
+
+        const tempoTotal =
+            Math.floor(
+                (Date.now() - tempoInicio) / 1000
+            );
+
+        const percentual =
+            Math.round(
+                (acertos / perguntas.length) * 100
+            );
+
+        const nome =
+            localStorage.getItem("jogadorAtual");
+
+
+        document
+            .getElementById("pontuacaoFinal")
+            .textContent =
+                `${pontos} pontos`;
+
+        document
+            .getElementById("totalAcertos")
+            .textContent =
+                acertos;
+
+        document
+            .getElementById("totalErros")
+            .textContent =
+                erros;
+
+        document
+            .getElementById("percentual")
+            .textContent =
+                `${percentual}%`;
+
+        document
+            .getElementById("tempoTotal")
+            .textContent =
+                formatarTempo(tempoTotal);
+
+
+        document
+            .getElementById("resultadoManutencao")
+            .textContent =
+                `${respostasCategoria["🖥️ Montagem e Manutenção"].acertos}/20`;
+
+        document
+            .getElementById("resultadoRedes")
+            .textContent =
+                `${respostasCategoria["🌐 Redes"].acertos}/15`;
+
+        document
+            .getElementById("resultadoHTML")
+            .textContent =
+                `${respostasCategoria["💻 HTML"].acertos}/15`;
+
+
+        document
+            .getElementById("barraManutencao")
+            .style.width =
+                `${(respostasCategoria["🖥️ Montagem e Manutenção"].acertos / 20) * 100}%`;
+
+        document
+            .getElementById("barraRedes")
+            .style.width =
+                `${(respostasCategoria["🌐 Redes"].acertos / 15) * 100}%`;
+
+        document
+            .getElementById("barraHTML")
+            .style.width =
+                `${(respostasCategoria["💻 HTML"].acertos / 15) * 100}%`;
+
+
+        let mensagem = "";
+
+        if (percentual >= 90) {
+
+            mensagem =
+                `🔥 Excelente, ${nome}! Você demonstrou ótimo domínio dos conteúdos.`;
+
+        } else if (percentual >= 70) {
+
+            mensagem =
+                `👏 Muito bom, ${nome}! Seu desempenho foi muito positivo.`;
+
+        } else if (percentual >= 50) {
+
+            mensagem =
+                `💪 Bom trabalho, ${nome}! Continue praticando para evoluir.`;
+
+        } else {
+
+            mensagem =
+                `📚 Continue estudando, ${nome}! A prática ajudará você a melhorar.`;
+
+        }
+
+        document
+            .getElementById("mensagemResultado")
+            .textContent = mensagem;
+
+
+        salvarResultado(
+            nome,
+            pontos,
+            acertos,
+            erros,
+            percentual,
+            tempoTotal
+        );
+
+        mostrarHistorico();
+
+        mostrarTela("telaResultado");
+
+    }
+
+
+    /*
+    ==========================================================
+    SALVAR RESULTADO
+    ==========================================================
+    */
+
+    function salvarResultado(
+        nome,
+        pontos,
+        acertos,
+        erros,
+        percentual,
+        tempo
+    ) {
+
+        let historico =
+            JSON.parse(
+                localStorage.getItem("historicoDesafio")
+            ) || [];
+
+
+        historico.unshift({
+
+            nome: nome,
+
+            pontos: pontos,
+
+            acertos: acertos,
+
+            erros: erros,
+
+            percentual: percentual,
+
+            tempo: tempo,
+
+            data: new Date().toLocaleString("pt-BR"),
+
+            timestamp: Date.now()
+
+        });
+
+
+        /*
+        Mantém somente os resultados
+        dos últimos 7 dias.
+        */
+
+        const seteDias =
+            7 * 24 * 60 * 60 * 1000;
+
+        historico =
+            historico.filter(
+                item =>
+                    Date.now() - item.timestamp
+                    <= seteDias
+            );
+
+
+        /*
+        Mantém no máximo 20 resultados.
+        */
+
+        historico =
+            historico.slice(0, 20);
+
+
+        localStorage.setItem(
+            "historicoDesafio",
+            JSON.stringify(historico)
+        );
+
+    }
+
+
+    /*
+    ==========================================================
+    MOSTRAR HISTÓRICO
+    ==========================================================
+    */
+
+    function mostrarHistorico() {
+
+        let historico =
+            JSON.parse(
+                localStorage.getItem("historicoDesafio")
+            ) || [];
+
+
+        const lista =
+            document.getElementById("listaHistorico");
+
+
+        lista.innerHTML = "";
+
+
+        if (historico.length === 0) {
+
+            lista.innerHTML =
+                "<p>Nenhum resultado registrado.</p>";
+
+            return;
+
+        }
+
+
+        historico.forEach(item => {
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "historico-item";
+
+            div.innerHTML = `
+                <strong>${item.nome}</strong><br>
+                🏆 ${item.pontos} pontos |
+                ✅ ${item.acertos} acertos |
+                ❌ ${item.erros} erros |
+                📊 ${item.percentual}%<br>
+                🕒 ${item.data}
+            `;
+
+            lista.appendChild(div);
+
+        });
+
+    }
+
+
+    /*
+    ==========================================================
+    SALVAR PROGRESSO
+    ==========================================================
+    */
+
+    function salvarProgresso() {
+
+        const nome =
+            localStorage.getItem("jogadorAtual");
+
+        const progresso = {
+
+            nome: nome,
+
+            perguntaAtual: perguntaAtual,
+
+            pontos: pontos,
+
+            acertos: acertos,
+
+            erros: erros,
+
+            respostasCategoria:
+                respostasCategoria,
+
+            tempoInicio: tempoInicio,
+
+            salvoEm: Date.now()
+
+        };
+
+
+        localStorage.setItem(
+            "progressoJogo",
+            JSON.stringify(progresso)
+        );
+
+    }
+
+
+    /*
+    ==========================================================
+    FORMATAR TEMPO
+    ==========================================================
+    */
+
+    function formatarTempo(segundos) {
+
+        const minutos =
+            Math.floor(segundos / 60);
+
+        const segundosRestantes =
+            segundos % 60;
+
+        return `${minutos}min ${segundosRestantes}s`;
+
+    }
+
+
+    /*
+    ==========================================================
+    NOVO JOGO
+    ==========================================================
+    */
+
+    function novoJogo() {
+
+        localStorage.removeItem(
+            "progressoJogo"
+        );
+
+        document
+            .getElementById("nomeJogador")
+            .value =
+                localStorage.getItem("jogadorAtual") || "";
+
+        mostrarTela("telaInicio");
+
+    }
+
+
+    /*
+    ==========================================================
+    LIMPAR HISTÓRICO
+    ==========================================================
+    */
+
+    function limparHistorico() {
+
+        const confirmar =
+            confirm(
+                "Tem certeza que deseja apagar todo o histórico?"
+            );
+
+        if (confirmar) {
+
+            localStorage.removeItem(
+                "historicoDesafio"
+            );
+
+            mostrarHistorico();
+
+        }
+
+    }
+
+
+    /*
+    ==========================================================
+    LIMPEZA AUTOMÁTICA DE DADOS ANTIGOS
+    ==========================================================
+    */
+
+    function limparDadosAntigos() {
+
+        const seteDias =
+            7 * 24 * 60 * 60 * 1000;
+
+
+        let historico =
+            JSON.parse(
+                localStorage.getItem("historicoDesafio")
+            ) || [];
+
+
+        historico =
+            historico.filter(
+                item =>
+                    Date.now() - item.timestamp
+                    <= seteDias
+            );
+
+
+        localStorage.setItem(
+            "historicoDesafio",
+            JSON.stringify(historico)
+        );
+
+
+        const progresso =
+            JSON.parse(
+                localStorage.getItem("progressoJogo")
+            );
+
+
+        if (
+            progresso &&
+            Date.now() - progresso.salvoEm
+            > seteDias
+        ) {
+
+            localStorage.removeItem(
+                "progressoJogo"
+            );
+
+        }
+
+    }
+
+
+    /*
+    ==========================================================
+    VERIFICAR AO ABRIR A PÁGINA
+    ==========================================================
+    */
+
+    window.onload = function() {
+
+        limparDadosAntigos();
+
+        mostrarHistorico();
+
+    };
+
+
 </script>
 
 </body>
