@@ -193,9 +193,26 @@ mark{background:rgba(39,200,255,.28);color:#fff;border-radius:4px;box-shadow:0 0
 <dialog id="dlg2"><iframe id="f2" sandbox="allow-scripts allow-modals" title="Resultado"></iframe><button onclick="dlg2.close()">Fechar</button></dialog>
 <dialog id="dlg"><pre id="dpre"></pre><button onclick="dlg.close()">Fechar</button></dialog>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"></script>
 <script>
+const SK_SRC=[
+ ["https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js","https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"],
+ ["https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js","https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"],
+ ["https://skulpt.org/js/skulpt.min.js","https://skulpt.org/js/skulpt-stdlib.js"]];
+function skLoad(src){return new Promise((ok,no)=>{const e=document.createElement("script");e.src=src;e.onload=ok;e.onerror=()=>{e.remove();no(new Error(src))};document.head.appendChild(e)})}
+const skReady=()=>typeof Sk!=="undefined"&&Sk.builtinFiles&&Sk.builtinFiles.files;
+let skP=null;
+function ensureSk(){
+  if(skReady())return Promise.resolve(true);
+  if(skP)return skP;
+  skP=(async()=>{
+    for(const [a,b] of SK_SRC){
+      try{await skLoad(a);await skLoad(b);if(skReady())return true}catch(e){}
+    }
+    skP=null;return false;
+  })();
+  return skP;
+}
+ensureSk();
 const $=id=>document.getElementById(id);
 const HTML0="<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>Minha página</title>\n</head>\n<body>\n  \n</body>\n</html>";
 const files={html:HTML0,css:"",js:"",py:"",dart:"",php:"",java:"",lua:"",sql:""};
@@ -459,7 +476,7 @@ function luaPage(src){let js;try{js=luaJs(src)}catch(e){js="console.log("+JSON.s
 let pyOut=[];
 async function runPy(tok,auto){
   if(!files.py.trim())return;
-  if(typeof Sk==="undefined"){log("Python indisponível (biblioteca não carregou).\n","err");return}
+  if(!skReady()){log("Carregando Python…\n","py");if(!await ensureSk()){log("Python indisponível: não foi possível baixar a biblioteca. Verifique sua internet ou bloqueadores de anúncios/conteúdo e tente de novo.\n","err");return}}
   Sk.configure({output:t=>{if(auto&&tok!==rtok)return;log(t,"py");pyOut.push(t)},inputfun:p=>auto?"":(prompt(p)||""),inputfunTakesPrompt:true,execLimit:4000,
     read:x=>{if(!Sk.builtinFiles||!Sk.builtinFiles.files[x])throw"Arquivo não encontrado: "+x;return Sk.builtinFiles.files[x]}});
   try{await Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody("<stdin>",false,files.py,true))}
@@ -702,7 +719,7 @@ function simState(n){const f={};sim.cur.files.forEach(x=>f[x]="");
 function simBuild(f){let h=f["index.html"]||"";
   h=h.replace(/<link[^>]*href=["']style\.css["'][^>]*>/i,()=>"<style>"+(f["style.css"]||"")+"</style>");
   h=h.replace(/<script[^>]*src=["']script\.js["'][^>]*><\/script>/i,()=>"<script>"+(f["script.js"]||"")+"<\/script>");return h}
-async function simPy(code){let out="";if(typeof Sk==="undefined")return "Python indisponível (biblioteca não carregou).";
+async function simPy(code){let out="";if(!await ensureSk())return "Python indisponível: não foi possível baixar a biblioteca. Verifique sua internet.";
   Sk.configure({output:t=>{out+=t},inputfun:()=>"",read:x=>{if(!Sk.builtinFiles||!Sk.builtinFiles.files[x])throw"Arquivo não encontrado: "+x;return Sk.builtinFiles.files[x]}});
   try{await Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody("<stdin>",false,code,true))}catch(e){out+=e.toString()+"\n"}return out}
 let VZ=[];
